@@ -1,42 +1,44 @@
-const Pool = require("pg").Pool
+const { text } = require('express');
+const {Pool}= require('pg');
 
-const pool = new Pool
-({
-    user: "postgres",
-    password: "yigadrian",
-    database: "volunteer_database",
-    host: "localhost",
-    port: 5432 
-})
+
+const config = {
+    user: 'postgres',
+    host: 'localhost',
+    password:'admin',
+    database:'library'
+};
+const pool= new Pool (config);
 
 module.exports= pool
-class DbProyectoRepositorio
-{
-    constructor()
-    {
-        this.cursor = null;
-    } 
+class DbHandler{
 
-    async get_proyecto(data)
-    {
-        const proyectos = await pool.query("SELECT * FROM proyecto_data")
-        return proyectos        
-    }
-    async crear_proyecto_ii(data)
-    {
-        const {nombre_proyecto}= data
-        const new_proyeto = await pool.query("INSERT INTO proyecto_data (nombre_proyecto) VALUES ($1) RETURNING *",
-        [nombre_proyecto])
-    }
-
-    async update_proyecto(id,data)
-    {
-        console.log(id)
-        const {nombre_proyecto}=data
-        const proyecto_a_actualizar = await pool.query("UPDATE proyecto_data SET nombre_proyecto=$1 WHERE proyecto_id == $8",
-        [nombre_proyecto,id])
-        return proyecto_a_actualizar
-    }
+    get_proyecto = async() => {
+        const proyectos = await pool.query("SELECT * FROM public.proyectos");
+        //console.log(proyectos.rows);
+        
+        return proyectos 
+    };
+    crear_proyecto_ii = async(_id, _nro_Participante, _nombre) => {
+            
+        const text= 'INSERT INTO public.proyectos(id, nro_participantes, nombre_proyecto) VALUES ($1, $2, $3)'
+        const values = [_id,_nro_Participante,_nombre];
+        const proyecto = await pool.query(text,values);
+        //console.log(proyectos);
+        
+        return proyecto        
+    };
+    actualizarParticipantesDelProyecto = async(id) => {
+            
+        const text= 'UPDATE public.proyectos a SET nro_participantes=nro_participantes+1 WHERE id = $1'
+        const values = [id];
+        const participants = await pool.query(text,values);
+        //console.log(participants);
+        
+        return participants        
+    };
 }
+module.exports = DbHandler
 
-module.exports = DbProyectoRepositorio
+
+//module.exports = DbProyectoRepositorio
